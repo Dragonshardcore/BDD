@@ -1,17 +1,39 @@
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 
-// Componente Spinner para mostrar un indicador de carga
-export default function Spinner() {
+export default function Spinner({
+  fullscreen = false,
+  mensaje = "Cargando...",
+}) {
   return (
-    // Contenedor que centra el spinner vertical y horizontalmente
     <Box
-      display="flex"
-      justifyContent="center"  // Centra horizontalmente
-      alignItems="center"     // Centra verticalmente
-      minHeight="100vh"       // Ocupa toda la altura de la ventana
+      sx={{
+        position: fullscreen ? "fixed" : "relative",
+        inset: fullscreen ? 0 : "auto",
+        minHeight: fullscreen ? "100vh" : 180,
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 2,
+        bgcolor: fullscreen
+          ? "rgba(255, 255, 255, 0.78)"
+          : "transparent",
+        backdropFilter: fullscreen ? "blur(2px)" : "none",
+        zIndex: fullscreen ? 9999 : "auto",
+      }}
     >
-      {/* Componente CircularProgress de Material-UI */}
-      <CircularProgress />
+      <CircularProgress size={fullscreen ? 55 : 40} />
+
+      {mensaje && (
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          fontWeight="medium"
+        >
+          {mensaje}
+        </Typography>
+      )}
     </Box>
   );
 }

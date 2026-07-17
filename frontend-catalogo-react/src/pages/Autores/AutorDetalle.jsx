@@ -17,7 +17,7 @@ const AutorDetalle = () => {
   const [error, setError] = useState(null); // Almacena mensajes de error
 
   // Verificar si el usuario está autenticado
-  const isLogged = !!localStorage.getItem("username");
+  const isLogged = !!localStorage.getItem("access_token");
 
   // Efecto para cargar los datos del autor cuando cambia el ID
   useEffect(() => {

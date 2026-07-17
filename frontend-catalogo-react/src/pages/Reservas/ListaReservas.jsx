@@ -19,7 +19,7 @@ import EditIcon from "@mui/icons-material/Edit";
 export default function ListaReservas() {
   // Función para verificar si el usuario está autenticado
   const isAuthenticated = () => {
-    return !!localStorage.getItem("username"); // Devuelve true si existe username
+    return !!localStorage.getItem("access_token"); // Devuelve true si existe username
   };
 
   // Estado para almacenar la lista de reservas

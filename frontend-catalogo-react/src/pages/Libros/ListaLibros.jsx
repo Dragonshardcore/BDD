@@ -1,56 +1,71 @@
 import { useEffect, useState } from "react";
-import { obtenerLibros, eliminarLibro } from "../../Services/libros_service";
-import LibroCard from "../../components/cards/LibroCard";
-import { Link } from "react-router-dom";
 import {
   Box,
-  Button,
   CircularProgress,
-  Grid,   // Grid responsivo
+  Grid,
+  Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+
+import { obtenerLibros } from "../../Services/libros_service";
+import LibroCard from "../../components/cards/LibroCard";
 
 const ListaLibros = () => {
-  // Estados para almacenar la lista de libros y controlar la carga
   const [libros, setLibros] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Función para cargar los libros desde la API
   const cargarLibros = async () => {
     try {
-      setLoading(true); // Activar estado de carga
-      const data = await obtenerLibros(); // Llamar al servicio
-      setLibros(data); // Actualizar estado con los libros obtenidos
-    } catch (error) {
-      console.error("Error:", error);
-      alert("No se pudieron cargar los libros");
+      setLoading(true);
+      setError("");
+
+      const data = await obtenerLibros();
+      setLibros(data);
+    } catch (errorPeticion) {
+      console.error("Error:", errorPeticion);
+      setError("No se pudieron cargar los libros.");
     } finally {
-      setLoading(false); // Desactivar estado de carga
+      setLoading(false);
     }
   };
 
-  // Cargar los libros al montar el componente
   useEffect(() => {
     cargarLibros();
-  }, []); // El array vacío asegura que solo se ejecute una vez
+  }, []);
 
   return (
-    <Box sx={{ px: 3 }}>
-      
-      {/* Mostrar spinner mientras carga */}
+    <Box sx={{ px: 3, py: 3 }}>
+      <Typography variant="h4" mb={3}>
+        Catálogo de libros
+      </Typography>
+
       {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            my: 4,
+          }}
+        >
           <CircularProgress />
         </Box>
       )}
 
-      {/* Grid responsivo para mostrar las tarjetas de libros */}
+      {error && (
+        <Typography color="error" align="center">
+          {error}
+        </Typography>
+      )}
+
+      {!loading && !error && libros.length === 0 && (
+        <Typography align="center">
+          No existen libros registrados.
+        </Typography>
+      )}
+
       <Grid container spacing={3}>
         {libros.map((libro) => (
-          // Cada libro se muestra en un item del grid
-          // Los breakpoints definen cuántas columnas ocupa en diferentes tamaños de pantalla
           <Grid item xs={12} sm={6} md={4} lg={3} key={libro.id}>
-            {/* Pasar el libro y la función de eliminar al componente de tarjeta */}
             <LibroCard libro={libro} />
           </Grid>
         ))}

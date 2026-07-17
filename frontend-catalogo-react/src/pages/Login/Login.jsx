@@ -1,133 +1,160 @@
-import { 
-    Box, Button, TextField, Typography, Container, 
-    Paper, Stack, CircularProgress 
-} from '@mui/material';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../../Services/ServicioUsuario'; // Importamos la lógica de conexión a Django
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
 
+import { login } from "../../Services/ServicioUsuario";
+
 export default function Login() {
-    // 1. ESTADOS: Para controlar los datos del form y la animación de carga
-    const [loginData, setLoginData] = useState({ username: "", password: "" });
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    // 2. MANEJADOR DINÁMICO: Actualiza el objeto loginData según el 'name' del input
-    const handleChange = (e) => {
-        setLoginData({ ...loginData, [e.target.name]: e.target.value });
-    };
+  const [loginData, setLoginData] = useState({
+    username: "",
+    password: "",
+  });
 
-    // 3. ENVÍO DEL FORMULARIO: Lógica principal de acceso
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setLoading(true); // Activamos el spinner visual
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-        // Usamos un pequeño delay para asegurar que el spinner se renderice antes de la petición
-        setTimeout(async () => {
-            try {
-                // Llamamos a la función asíncrona de nuestro servicio
-                const response = await login(loginData.username, loginData.password);
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
-                // Si Django responde con éxito (Status 200 OK)
-                if (response.status === 200) {
-                    // Guardamos info básica para personalizar la experiencia del usuario
-                    localStorage.setItem("username", loginData.username);
-                    localStorage.setItem("access_token", response.data.access_token);
-                    // Redirección forzada al Home para refrescar el estado global
-                    window.location.href = "/";
-                }
-            } catch (error) {
-                // Si las credenciales fallan o el servidor no responde
-                console.error("Error en login:", error);
-                alert("Usuario o contraseña incorrectos");
-            } finally {
-                // Apagamos el spinner pase lo que pase (éxito o error)
-                setLoading(false);
-            }
-        }, 50);
-    };
+    setLoginData((datosAnteriores) => ({
+      ...datosAnteriores,
+      [name]: value,
+    }));
+  };
 
-    return (
-        <Box
-            sx={{
-                position: 'relative',
-                width: '100vw',
-                height: '100vh',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                bgcolor: '#f5f5f5', // Fondo gris claro para resaltar el formulario
-            }}
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      setLoading(true);
+      setError("");
+
+      await login(loginData.username, loginData.password);
+
+      navigate("/", {
+        replace: true,
+      });
+
+      // Actualiza Navbar si depende directamente de localStorage
+      window.location.reload();
+    } catch (errorPeticion) {
+      console.error("Error en login:", errorPeticion);
+
+      setError(
+        errorPeticion.response?.data?.error_description ||
+          "Usuario o contraseña incorrectos."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        bgcolor: "#f5f5f5",
+        px: 2,
+      }}
+    >
+      <Container maxWidth="xs">
+        <Paper
+          elevation={10}
+          sx={{
+            p: 4,
+            borderRadius: "20px",
+            textAlign: "center",
+          }}
         >
-            {/* Contenedor principal: Paper da el efecto de tarjeta elevada */}
-            <Container maxWidth="xs">
-                <Paper elevation={10} sx={{ p: 4, borderRadius: "20px", textAlign: "center" }}>
-                    <Typography variant="h4" fontWeight="bold" gutterBottom color="primary">
-                        Bienvenido
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-                        Inicia sesión para gestionar tu Librería
-                    </Typography>
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            gutterBottom
+            color="primary"
+          >
+            Bienvenido
+          </Typography>
 
-                    <Box component="form" onSubmit={handleSubmit}>
-                        <Stack spacing={3}>
-                            {/* Inputs de Material UI: Estilizados y con validación 'required' */}
-                            <TextField
-                                fullWidth
-                                label="Usuario"
-                                name="username"
-                                variant="outlined"
-                                value={loginData.username}
-                                onChange={handleChange}
-                                required
-                            />
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 3 }}
+          >
+            Inicia sesión para gestionar tu biblioteca.
+          </Typography>
 
-                            <TextField
-                                fullWidth
-                                label="Contraseña"
-                                name="password"
-                                type="password"
-                                variant="outlined"
-                                value={loginData.password}
-                                onChange={handleChange}
-                                required
-                            />
+          <Box component="form" onSubmit={handleSubmit}>
+            <Stack spacing={3}>
+              <TextField
+                fullWidth
+                label="Usuario"
+                name="username"
+                value={loginData.username}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              />
 
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                size="large"
-                                startIcon={<LoginIcon />}
-                                sx={{ 
-                                    py: 1.5, 
-                                    fontWeight: "bold", 
-                                    borderRadius: "10px", 
-                                    bgcolor: "#2e7d32", 
-                                    "&:hover": { bgcolor: "#1b5e20" } 
-                                }}
-                            >
-                                Iniciar Sesión
-                            </Button>
-                        </Stack>
-                    </Box>
-                </Paper>
-            </Container>
+              <TextField
+                fullWidth
+                label="Contraseña"
+                name="password"
+                type="password"
+                value={loginData.password}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              />
 
-            {/* OVERLAY DE CARGA: Cubre la pantalla cuando 'loading' es true */}
-            {loading && (
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        top: 0, left: 0, width: '100%', height: '100%',
-                        display: 'flex', justifyContent: 'center', alignItems: 'center',
-                        bgcolor: 'rgba(255,255,255,0.6)', // Fondo traslúcido
-                        zIndex: 10,
-                    }}
-                >
-                    <CircularProgress size={60} />
-                </Box>
-            )}
-        </Box>
-    );
+              {error && (
+                <Typography color="error" variant="body2">
+                  {error}
+                </Typography>
+              )}
+
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                startIcon={
+                  loading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <LoginIcon />
+                  )
+                }
+                disabled={loading}
+                sx={{
+                  py: 1.5,
+                  fontWeight: "bold",
+                  borderRadius: "10px",
+                  bgcolor: "#2e7d32",
+                  "&:hover": {
+                    bgcolor: "#1b5e20",
+                  },
+                }}
+              >
+                {loading ? "Ingresando..." : "Iniciar sesión"}
+              </Button>
+            </Stack>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
+  );
 }

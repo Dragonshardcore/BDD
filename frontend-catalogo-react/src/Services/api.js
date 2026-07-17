@@ -1,29 +1,44 @@
 import axios from "axios";
 
-// Crear una instancia de axios con configuración base
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // URL base desde variables de entorno
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
-    "Content-Type": "application/json", // Siempre enviar JSON
+    "Content-Type": "application/json",
   },
 });
 
-// Interceptor de solicitudes: se ejecuta antes de cada petición
+// Agregar el token OAuth2 antes de cada solicitud
 api.interceptors.request.use(
   (config) => {
-    // Obtener token del localStorage
     const token = localStorage.getItem("access_token");
 
-    // Si hay token, agregarlo al header de autorización
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Devolver la configuración modificada
     return config;
   },
-  (error) => Promise.reject(error) // Manejar errores del interceptor
+  (error) => Promise.reject(error)
 );
 
-// Exportar la instancia configurada
+// Controlar errores globales de autenticación
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+
+    if (status === 401) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("username");
+
+      // Evitar redirecciones repetidas si ya estamos en login
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;

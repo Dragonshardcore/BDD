@@ -25,7 +25,7 @@ export default function ReservaEditar() {
 
   // Verificar si el usuario está autenticado
   useEffect(() => {
-    if (!localStorage.getItem("username")) {
+    if (!localStorage.getItem("access_token")) {
       navigate("/login"); // Redirigir al login si no está autenticado
     }
   }, [navigate]);

@@ -8,6 +8,10 @@ import Footer from "../components/Footer";
 // Página de login
 import Login from "../pages/Login/Login";
 
+// Páginas de sincronización
+import Sincronizacion from "../pages/Sincronizacion/Sincronizacion";
+import LogsSincronizacion from "../pages/Sincronizacion/LogsSincronizacion";
+
 // Páginas de autores
 import ListaAutores from "../pages/Autores/ListaAutores";
 import ObrasAutor from "../pages/Autores/ObrasAutor";
@@ -27,44 +31,59 @@ import ReservaEditar from "../pages/Reservas/ReservaEditar";
 
 export default function AppRoutes() {
   return (
-    // Contenedor principal que ocupa toda la pantalla
     <Box
       sx={{
-        minHeight: "100vh", // Altura mínima de toda la ventana
+        minHeight: "100vh",
         display: "flex",
-        flexDirection: "column", // Elementos apilados verticalmente
+        flexDirection: "column",
       }}
     >
-      {/* Barra de navegación superior fija */}
       <Navbar />
 
-      {/* Área de contenido principal que se expande */}
-      <Box sx={{ flex: 1, mt: 4 }}> {/* Ocupa espacio restante, margen superior */}
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          mt: 4,
+        }}
+      >
         <Routes>
-          {/* Ruta de login - acceso público */}
+          {/* Acceso público */}
           <Route path="/login" element={<Login />} />
 
-          {/* Rutas CRUD para autores */}
-          <Route path="/autores" element={<ListaAutores />} /> {/* Lista todos */}
-          <Route path="/autores/:id/obras" element={<ObrasAutor />} /> {/* Obras de un autor */}
-          <Route path="/autores/:id" element={<AutorDetalle />} /> {/* Detalle autor */}
-          <Route path="/autores/editar/:id" element={<AutorEditar />} /> {/* Editar autor */}
-          <Route path="/autores/crear" element={<AutorCrear />} /> {/* Crear nuevo autor */}
+          {/* Sincronización */}
+          <Route
+            path="/sincronizacion"
+            element={<Sincronizacion />}
+          />
+          <Route
+            path="/sincronizacion/logs"
+            element={<LogsSincronizacion />}
+          />
 
-          {/* Rutas CRUD para libros */}
-          <Route path="/" element={<ListaLibros />} /> {/* Página de inicio */}
-          <Route path="/libros/nuevo" element={<FormLibro />} /> {/* Crear libro */}
-          <Route path="/libros/editar/:id" element={<FormLibro />} /> {/* Editar libro (reutiliza FormLibro) */}
-          <Route path="/libros/:id" element={<VerLibro />} /> {/* Ver detalles libro */}
+          {/* Autores */}
+          <Route path="/autores" element={<ListaAutores />} />
+          <Route path="/autores/crear" element={<AutorCrear />} />
+          <Route path="/autores/editar/:id" element={<AutorEditar />} />
+          <Route path="/autores/:id/obras" element={<ObrasAutor />} />
+          <Route path="/autores/:id" element={<AutorDetalle />} />
 
-          {/* Rutas CRUD para reservas */}
-          <Route path="/reservas" element={<ListaReservas />} /> {/* Lista reservas */}
-          <Route path="/reservas/crear" element={<CrearReserva />} /> {/* Crear reserva */}
-          <Route path="/reservas/editar/:id" element={<ReservaEditar />} /> {/* Editar reserva */}
+          {/* Libros */}
+          <Route path="/" element={<ListaLibros />} />
+          <Route path="/libros/nuevo" element={<FormLibro />} />
+          <Route path="/libros/editar/:id" element={<FormLibro />} />
+          <Route path="/libros/:id" element={<VerLibro />} />
+
+          {/* Reservas */}
+          <Route path="/reservas" element={<ListaReservas />} />
+          <Route path="/reservas/crear" element={<CrearReserva />} />
+          <Route
+            path="/reservas/editar/:id"
+            element={<ReservaEditar />}
+          />
         </Routes>
       </Box>
 
-      {/* Pie de página inferior fijo */}
       <Footer />
     </Box>
   );
