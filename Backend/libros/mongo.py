@@ -1,26 +1,14 @@
 from pymongo import MongoClient
 from bson import ObjectId
 
-# ============================================================
-# CONEXIÓN A MONGODB
-# ============================================================
-
 client = MongoClient("mongodb://localhost:27017/")
 
 db = client["biblioteca_distribuida"]
 
-# ============================================================
-# COLECCIONES
-# ============================================================
-
-autores_collection = db["autores"]
 libros_collection = db["libros"]
+autores_collection = db["autores"]
 reservas_collection = db["reservas"]
 logs_collection = db["logs_sincronizacion"]
-
-# ============================================================
-# ÍNDICES
-# ============================================================
 
 autores_collection.create_index(
     "id_sql",
@@ -33,70 +21,132 @@ libros_collection.create_index(
     unique=True,
     sparse=True
 )
-
 reservas_collection.create_index(
     "id_sql",
     unique=True,
     sparse=True
 )
 
-# ============================================================
-# CRUD LIBROS
-# ============================================================
+# ============================
+# CREATE
+# ============================
 
 def crear_libro(documento):
-    """
-    Inserta un libro en MongoDB.
-    """
+
     resultado = libros_collection.insert_one(documento)
+
     return str(resultado.inserted_id)
 
 
+# ============================
+# READ
+# ============================
+
 def obtener_libros():
-    """
-    Obtiene todos los libros.
-    """
+
     libros = []
 
     for libro in libros_collection.find():
+
         libro["_id"] = str(libro["_id"])
+
         libros.append(libro)
 
     return libros
 
 
-def obtener_libro_por_id(id):
-    """
-    Obtiene un libro por su ObjectId.
-    """
-    libro = libros_collection.find_one(
-        {"_id": ObjectId(id)}
-    )
-
-    if libro:
-        libro["_id"] = str(libro["_id"])
-
-    return libro
-
+# ============================
+# UPDATE
+# ============================
 
 def actualizar_libro(id, datos):
-    """
-    Actualiza un libro.
-    """
-    resultado = libros_collection.update_one(
+
+    libros_collection.update_one(
+
+        {"_id": ObjectId(id)},
+
+        {"$set": datos}
+
+    )
+
+
+# ============================
+# DELETE
+# ============================
+
+def eliminar_libro(id):
+
+    libros_collection.delete_one(
+
+        {"_id": ObjectId(id)}
+
+    )
+# ============================
+# AUTORES
+# ============================
+
+def crear_autor(documento):
+    resultado = autores_collection.insert_one(documento)
+    return str(resultado.inserted_id)
+
+
+def obtener_autores():
+
+    autores = []
+
+    for autor in autores_collection.find():
+        autor["_id"] = str(autor["_id"])
+        autores.append(autor)
+
+    return autores
+
+
+def actualizar_autor(id, datos):
+
+    autores_collection.update_one(
         {"_id": ObjectId(id)},
         {"$set": datos}
     )
 
-    return resultado.modified_count
 
+def eliminar_autor(id):
 
-def eliminar_libro(id):
-    """
-    Elimina un libro.
-    """
-    resultado = libros_collection.delete_one(
+    autores_collection.delete_one(
         {"_id": ObjectId(id)}
     )
 
-    return resultado.deleted_count
+# ============================
+# RESERVAS
+# ============================
+
+def crear_reserva(documento):
+
+    resultado = reservas_collection.insert_one(documento)
+
+    return str(resultado.inserted_id)
+
+
+def obtener_reservas():
+
+    reservas = []
+
+    for reserva in reservas_collection.find():
+        reserva["_id"] = str(reserva["_id"])
+        reservas.append(reserva)
+
+    return reservas
+
+
+def actualizar_reserva(id, datos):
+
+    reservas_collection.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": datos}
+    )
+
+
+def eliminar_reserva(id):
+
+    reservas_collection.delete_one(
+        {"_id": ObjectId(id)}
+    )
