@@ -1,45 +1,77 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import LibroViewSet, ReservaViewSet, AutorViewSet,sincronizar_mongo, listar_libros_mongo, crear_libro_mongo, actualizar_libro_mongo,  eliminar_libro_mongo
-from .views import sincronizar_mongo
 
-# Router de DRF
+from .views import (
+    AutorViewSet,
+    LibroViewSet,
+    ReservaViewSet,
+    actualizar_libro_mongo,
+    crear_libro_mongo,
+    eliminar_libro_mongo,
+    listar_libros_mongo,
+    listar_logs_sincronizacion,
+    sincronizar_mongo_postgres,
+    sincronizar_postgres_mongo,
+)
+
+
 router = DefaultRouter()
 
-# Registro de rutas automáticas
-router.register(r'libros', LibroViewSet)
-router.register(r'reservas', ReservaViewSet)
-router.register(r'autores', AutorViewSet)
+router.register(r"libros", LibroViewSet, basename="libro")
+router.register(r"reservas", ReservaViewSet, basename="reserva")
+router.register(r"autores", AutorViewSet, basename="autor")
 
-# URLs finales de la API
+
 urlpatterns = [
-    path('', include(router.urls)),
+    # ==========================
+    # API REST PostgreSQL (DRF)
+    # ==========================
+    path("", include(router.urls)),
 
+    # ==========================
+    # CRUD MongoDB
+    # ==========================
     path(
-        'sync/postgres-mongo/',
-        sincronizar_mongo,
-        name='sync-postgres-mongo'
-    ),
-
-    path(
-        'mongo/libros/',
+        "mongo/libros/",
         listar_libros_mongo,
-        name='listar-libros-mongo'
+        name="listar-libros-mongo",
+    ),
+    path(
+        "mongo/libros/crear/",
+        crear_libro_mongo,
+        name="crear-libro-mongo",
+    ),
+    path(
+        "mongo/libros/<str:id>/",
+        actualizar_libro_mongo,
+        name="actualizar-libro-mongo",
+    ),
+    path(
+        "mongo/libros/eliminar/<str:id>/",
+        eliminar_libro_mongo,
+        name="eliminar-libro-mongo",
     ),
 
+    # ==========================
+    # Sincronización
+    # ==========================
     path(
-        'mongo/libros/crear/',
-        crear_libro_mongo,
-        name='crear-libro-mongo'
+        "sincronizar/postgres-mongo/",
+        sincronizar_postgres_mongo,
+        name="sincronizar-postgres-mongo",
     ),
     path(
-    'mongo/libros/<str:id>/',
-    actualizar_libro_mongo,
-    name='actualizar-libro-mongo'
+        "sincronizar/mongo-postgres/",
+        sincronizar_mongo_postgres,
+        name="sincronizar-mongo-postgres",
     ),
+
+    # ==========================
+    # Logs de sincronización
+    # ==========================
     path(
-    'mongo/libros/eliminar/<str:id>/',
-    eliminar_libro_mongo,
-    name='eliminar-libro-mongo'
+        "sincronizar/logs/",
+        listar_logs_sincronizacion,
+        name="listar-logs-sincronizacion",
     ),
 ]
