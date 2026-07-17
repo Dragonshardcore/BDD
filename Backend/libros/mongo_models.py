@@ -1,38 +1,39 @@
 from bson import ObjectId
 
-from .mongo import db
+from .mongo import base_datos_mongo
 
 
-class MongoModel:
-
-    collection_name = None
+class ModeloMongo:
+    nombre_coleccion = None
 
     def __init__(self):
-        if not self.collection_name:
+        if not self.nombre_coleccion:
             raise ValueError(
-                "Debes definir collection_name en el modelo MongoDB."
+                "Debes definir nombre_coleccion."
             )
 
-        self.collection = db[self.collection_name]
+        self.coleccion = base_datos_mongo[
+            self.nombre_coleccion
+        ]
 
-    def create(self, data):
-        resultado = self.collection.insert_one(data)
+    def crear(self, datos):
+        resultado = self.coleccion.insert_one(datos)
 
         return str(resultado.inserted_id)
 
-    def get_all(self):
+    def obtener_todos(self):
         documentos = []
 
-        for documento in self.collection.find():
+        for documento in self.coleccion.find():
             documento["_id"] = str(documento["_id"])
             documentos.append(documento)
 
         return documentos
 
-    def get_by_id(self, document_id):
-        documento = self.collection.find_one(
+    def obtener_por_id(self, identificador):
+        documento = self.coleccion.find_one(
             {
-                "_id": ObjectId(document_id)
+                "_id": ObjectId(identificador)
             }
         )
 
@@ -41,14 +42,14 @@ class MongoModel:
 
         return documento
 
-    def update(self, document_id, data):
-        resultado = self.collection.update_one(
+    def actualizar(self, identificador, datos):
+        resultado = self.coleccion.update_one(
             {
-                "_id": ObjectId(document_id)
+                "_id": ObjectId(identificador)
             },
             {
-                "$set": data
-            }
+                "$set": datos
+            },
         )
 
         return {
@@ -56,11 +57,23 @@ class MongoModel:
             "modificados": resultado.modified_count,
         }
 
-    def delete(self, document_id):
-        resultado = self.collection.delete_one(
+    def eliminar(self, identificador):
+        resultado = self.coleccion.delete_one(
             {
-                "_id": ObjectId(document_id)
+                "_id": ObjectId(identificador)
             }
         )
 
         return resultado.deleted_count
+
+
+class AutorMongo(ModeloMongo):
+    nombre_coleccion = "autores"
+
+
+class LibroMongo(ModeloMongo):
+    nombre_coleccion = "libros"
+
+
+class ReservaMongo(ModeloMongo):
+    nombre_coleccion = "reservas"
