@@ -1,75 +1,96 @@
-from rest_framework import status
-from rest_framework.decorators import (
-    api_view,
-    authentication_classes,
-    permission_classes,
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+
+from .views import (
+    # PostgreSQL
+    AutorViewSet,
+    LibroViewSet,
+    ReservaViewSet,
+
+    # MongoDB
+    AutorMongoViewSet,
+    LibroMongoViewSet,
+    ReservaMongoViewSet,
+
+    # Sincronización
+    sincronizar_mongo,
+    sincronizar_postgres,
+
+    # Logs
+    listar_logs_sincronizacion,
 )
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 
-from .sync import (
-    sincronizar_todo_mongo_a_postgres,
-    sincronizar_todo_postgres_a_mongo,
+
+router = DefaultRouter()
+
+
+# ============================================================
+# POSTGRESQL
+# ============================================================
+
+router.register(
+    r"autores",
+    AutorViewSet,
+    basename="autores-postgres",
+)
+
+router.register(
+    r"libros",
+    LibroViewSet,
+    basename="libros-postgres",
+)
+
+router.register(
+    r"reservas",
+    ReservaViewSet,
+    basename="reservas-postgres",
 )
 
 
-@api_view(["POST"])
-@authentication_classes([])
-@permission_classes([AllowAny])
-def sincronizar_mongo(request):
-    """
-    Sincroniza PostgreSQL hacia MongoDB.
-    """
-    try:
-        resultado = sincronizar_todo_postgres_a_mongo()
+# ============================================================
+# MONGODB
+# ============================================================
 
-        codigo = status.HTTP_200_OK
+router.register(
+    r"mongo/autores",
+    AutorMongoViewSet,
+    basename="autores-mongo",
+)
 
-        if resultado.get("estado") == "fallido":
-            codigo = status.HTTP_500_INTERNAL_SERVER_ERROR
+router.register(
+    r"mongo/libros",
+    LibroMongoViewSet,
+    basename="libros-mongo",
+)
 
-        return Response(
-            resultado,
-            status=codigo,
-        )
-
-    except Exception as error:
-        return Response(
-            {
-                "estado": "fallido",
-                "direccion": "postgresql_a_mongodb",
-                "error": str(error),
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+router.register(
+    r"mongo/reservas",
+    ReservaMongoViewSet,
+    basename="reservas-mongo",
+)
 
 
-@api_view(["POST"])
-@authentication_classes([])
-@permission_classes([AllowAny])
-def sincronizar_postgres(request):
-    """
-    Sincroniza MongoDB hacia PostgreSQL.
-    """
-    try:
-        resultado = sincronizar_todo_mongo_a_postgres()
+urlpatterns = [
+    path(
+        "",
+        include(router.urls),
+    ),
 
-        codigo = status.HTTP_200_OK
+    path(
+        "sync/postgres-mongo/",
+        sincronizar_mongo,
+        name="sync-postgres-mongo",
+    ),
 
-        if resultado.get("estado") == "fallido":
-            codigo = status.HTTP_500_INTERNAL_SERVER_ERROR
+    path(
+        "sync/mongo-postgres/",
+        sincronizar_postgres,
+        name="sync-mongo-postgres",
+    ),
 
-        return Response(
-            resultado,
-            status=codigo,
-        )
-
-    except Exception as error:
-        return Response(
-            {
-                "estado": "fallido",
-                "direccion": "mongodb_a_postgresql",
-                "error": str(error),
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+    path(
+        "sync/logs/",
+        listar_logs_sincronizacion,
+        name="listar-logs-sincronizacion",
+    ),
+]
