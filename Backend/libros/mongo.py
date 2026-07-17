@@ -6,7 +6,26 @@ client = MongoClient("mongodb://localhost:27017/")
 db = client["biblioteca_distribuida"]
 
 libros_collection = db["libros"]
+autores_collection = db["autores"]
+reservas_collection = db["reservas"]
+logs_collection = db["logs_sincronizacion"]
 
+autores_collection.create_index(
+    "id_sql",
+    unique=True,
+    sparse=True
+)
+
+libros_collection.create_index(
+    "id_sql",
+    unique=True,
+    sparse=True
+)
+reservas_collection.create_index(
+    "id_sql",
+    unique=True,
+    sparse=True
+)
 
 # ============================
 # CREATE
