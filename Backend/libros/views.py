@@ -7,14 +7,17 @@ from rest_framework.decorators import (
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from .models import Autor, Libro, Reserva
+from .models import (
+    Autor,
+    Libro,
+    Reserva,
+)
+
 from .serializers import (
     AutorSerializer,
     LibroSerializer,
     ReservaSerializer,
 )
-
-from .mongo import logs_collection
 
 from .mongo_models import (
     AutorMongo,
@@ -24,9 +27,10 @@ from .mongo_models import (
 
 from .mongo_viewsets import VistaModeloMongo
 
-from .sync import (
-    sincronizar_todo_postgres_a_mongo,
-    sincronizar_todo_mongo_a_postgres,
+from .servicios import (
+    ejecutar_sincronizacion_postgres_mongo,
+    ejecutar_sincronizacion_mongo_postgres,
+    obtener_logs_sincronizacion,
 )
 
 
@@ -98,13 +102,11 @@ class ReservaMongoViewSet(VistaModeloMongo):
 @permission_classes([AllowAny])
 def sincronizar_mongo(request):
     """
-    Sincroniza todos los datos desde PostgreSQL hacia MongoDB.
-
-    Este nombre se conserva porque lo utiliza urls.py.
+    Sincroniza PostgreSQL hacia MongoDB.
     """
 
     try:
-        resultado = sincronizar_todo_postgres_a_mongo()
+        resultado = ejecutar_sincronizacion_postgres_mongo()
 
         codigo_estado = status.HTTP_200_OK
 
@@ -136,13 +138,11 @@ def sincronizar_mongo(request):
 @permission_classes([AllowAny])
 def sincronizar_postgres(request):
     """
-    Sincroniza todos los datos desde MongoDB hacia PostgreSQL.
-
-    Este nombre se conserva porque lo utiliza urls.py.
+    Sincroniza MongoDB hacia PostgreSQL.
     """
 
     try:
-        resultado = sincronizar_todo_mongo_a_postgres()
+        resultado = ejecutar_sincronizacion_mongo_postgres()
 
         codigo_estado = status.HTTP_200_OK
 
@@ -174,27 +174,14 @@ def sincronizar_postgres(request):
 @permission_classes([AllowAny])
 def listar_logs_sincronizacion(request):
     """
-    Lista los registros de sincronización almacenados en MongoDB.
+    Lista los logs de sincronización.
     """
 
     try:
-        logs = []
-
-        cursor = logs_collection.find().sort(
-            "fecha_inicio",
-            -1,
-        )
-
-        for log in cursor:
-            log["_id"] = str(log["_id"])
-            logs.append(log)
+        resultado = obtener_logs_sincronizacion()
 
         return Response(
-            {
-                "estado": "completado",
-                "cantidad": len(logs),
-                "logs": logs,
-            },
+            resultado,
             status=status.HTTP_200_OK,
         )
 
